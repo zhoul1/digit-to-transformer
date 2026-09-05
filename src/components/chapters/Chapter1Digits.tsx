@@ -11,6 +11,7 @@ import {
 import { MathCard } from '../common/MathCard';
 import { CodeBlock } from '../common/CodeBlock';
 import { QuizModal } from '../common/QuizModal';
+import { VitPatchVisualizer } from '../common/VitPatchVisualizer';
 import { QUIZZES } from '../../data/quizzesData';
 import { softmax } from '../../utils/attentionMath';
 import { ActiveTab } from '../../types';
@@ -226,6 +227,22 @@ class SimpleDigitMLP(nn.Module):
         return logits
 `}
         />
+      </section>
+
+      {/* 第五节：前沿拓展：Vision Transformer (ViT) 图像切片与大一统 */}
+      <section className="space-y-4">
+        <h2 className="text-xl font-bold text-slate-100 flex items-center gap-2">
+          <span className="w-7 h-7 rounded-lg bg-indigo-500/20 text-indigo-400 font-mono text-sm flex items-center justify-center font-bold">
+            5
+          </span>
+          未来视角：Transformer 怎样把图像当成“句子”看？(ViT)
+        </h2>
+        <p className="text-sm text-slate-300 leading-relaxed">
+          既然 MLP 可以把 784 个像素展平成一长排，那当今统治 AI 的 Transformer 又会如何处理手写数字图片呢？
+          答案是：<strong>将图片切片为若干个微块 (Patch)，每个微块直接当作一个视觉 Token 词！</strong>
+        </p>
+
+        <VitPatchVisualizer />
       </section>
 
       {/* 练习与画板实操呼出 */}

@@ -12,6 +12,7 @@ import {
 import {
   computeScaledDotProductAttention,
 } from '../../utils/attentionMath';
+import { TokenAttentionRayArcs } from '../common/TokenAttentionRayArcs';
 
 export const AttentionPlayground: React.FC = () => {
   // 预设句子
@@ -28,6 +29,7 @@ export const AttentionPlayground: React.FC = () => {
   const [activeStep, setActiveStep] = useState<number>(4); // 默认停在核心热力图
   const [activeHead, setActiveHead] = useState<number>(1);
   const [hoveredCell, setHoveredCell] = useState<{ row: number; col: number } | null>(null);
+  const [focusedTokenIdx, setFocusedTokenIdx] = useState<number>(PRESET_SENTENCES[0].tokens.length - 1);
 
   // 为每个 Token 模拟生成 4 维嵌入向量
   const embeddings = useMemo(() => {
@@ -204,6 +206,18 @@ export const AttentionPlayground: React.FC = () => {
           ))}
         </div>
       </div>
+
+      {/* 全新增加：Token 动态注意力光束弧线图 */}
+      <TokenAttentionRayArcs
+        tokens={tokens}
+        attentionWeights={attentionResult.attentionWeights}
+        focusedIdx={Math.min(focusedTokenIdx, tokens.length - 1)}
+        onSelectFocus={(idx) => {
+          setFocusedTokenIdx(idx);
+          setHoveredCell({ row: idx, col: idx });
+        }}
+        useCausalMask={useCausalMask}
+      />
 
       {/* 核心演算视图区 */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">

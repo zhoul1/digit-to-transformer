@@ -49,3 +49,23 @@ export interface TokenItem {
   text: string;
   vector: number[];
 }
+
+export interface GlossaryItem {
+  id: string;
+  term: string;
+  english: string;
+  category: '视觉与像素' | '序列与向量' | '注意力机制' | 'Transformer架构' | '生成与采样';
+  shortDef: string;
+  fullExplanation: string;
+  formula?: string;
+}
+
+export interface Achievement {
+  id: string;
+  title: string;
+  description: string;
+  icon: string;
+  badgeColor: string;
+  unlocked: boolean;
+  progress?: { current: number; total: number };
+}

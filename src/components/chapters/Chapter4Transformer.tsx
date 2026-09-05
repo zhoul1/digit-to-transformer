@@ -12,6 +12,7 @@ import {
 import { MathCard } from '../common/MathCard';
 import { CodeBlock } from '../common/CodeBlock';
 import { QuizModal } from '../common/QuizModal';
+import { PositionalEncodingVisualizer } from '../common/PositionalEncodingVisualizer';
 import { QUIZZES } from '../../data/quizzesData';
 import { ActiveTab } from '../../types';
 
@@ -64,6 +65,9 @@ export const Chapter4Transformer: React.FC<Chapter4Props> = ({
           intuition="就像在每个词的衣服口袋里塞了一张带有时间戳的纸条，注意力机制在比对内容的同时，能一眼看出谁在前、谁在后。"
           tags={['时序信息', '三角函数', 'RoPE 旋转位置编码前身']}
         />
+
+        {/* 正弦余弦位置编码动态交互波形探索器 */}
+        <PositionalEncodingVisualizer />
       </section>
 
       {/* 第二节：残差连接与层归一化 */}

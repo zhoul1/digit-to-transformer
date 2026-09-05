@@ -31,6 +31,80 @@ export const NEURON_FEATURE_NAMES = [
   '整体左右对称度',
 ];
 
+// 计算特定神经元对应的 28x28 感受野热区遮罩 (Receptive Field Mask)
+export function getNeuronReceptiveMask(neuronIdx: number): number[][] {
+  const mask: number[][] = Array.from({ length: 28 }, () => Array(28).fill(0));
+  for (let r = 0; r < 28; r++) {
+    for (let c = 0; c < 28; c++) {
+      let val = 0;
+      switch (neuronIdx) {
+        case 0: // 顶横
+          if (r >= 5 && r <= 9 && c >= 7 && c <= 21) val = 1.0;
+          break;
+        case 1: // 中腰
+          if (r >= 12 && r <= 16 && c >= 7 && c <= 21) val = 1.0;
+          break;
+        case 2: // 底横
+          if (r >= 20 && r <= 24 && c >= 7 && c <= 21) val = 1.0;
+          break;
+        case 3: // 中竖
+          if (c >= 12 && c <= 16 && r >= 5 && r <= 23) val = 1.0;
+          break;
+        case 4: // 左上竖
+          if (c >= 6 && c <= 10 && r >= 6 && r <= 14) val = 1.0;
+          break;
+        case 5: // 右上竖
+          if (c >= 18 && c <= 22 && r >= 6 && r <= 14) val = 1.0;
+          break;
+        case 6: // 左下竖
+          if (c >= 6 && c <= 10 && r >= 14 && r <= 22) val = 1.0;
+          break;
+        case 7: // 右下竖
+          if (c >= 18 && c <= 22 && r >= 14 && r <= 22) val = 1.0;
+          break;
+        case 8: // 顶部弧
+          {
+            const dr = (r - 10) / 4.5;
+            const dc = (c - 14) / 5.5;
+            const d = dr * dr + dc * dc;
+            if (d >= 0.6 && d <= 1.3 && r <= 13) val = 1.0;
+          }
+          break;
+        case 9: // 底部环
+          {
+            const dr = (r - 18) / 5.0;
+            const dc = (c - 14) / 6.0;
+            const d = dr * dr + dc * dc;
+            if (d >= 0.6 && d <= 1.3 && r >= 13) val = 1.0;
+          }
+          break;
+        case 10: // 对角斜划 1
+          if (Math.abs(r - (27 - c)) <= 2 && r >= 6 && r <= 22) val = 1.0;
+          break;
+        case 11: // 对角斜划 2
+          if (Math.abs(r - c) <= 2 && r >= 6 && r <= 22) val = 1.0;
+          break;
+        case 12: // 中心质心
+          if (r >= 10 && r <= 18 && c >= 10 && c <= 18) val = 1.0;
+          break;
+        case 13: // 8 双环交界
+          if ((r >= 12 && r <= 15) && (c >= 11 && c <= 17)) val = 1.0;
+          break;
+        case 14: // 右侧凹陷
+          if (c >= 16 && c <= 22 && r >= 10 && r <= 18) val = 1.0;
+          break;
+        case 15: // 左右对称检测
+          if ((c <= 9 || c >= 19) && r >= 7 && r <= 21) val = 0.8;
+          break;
+        default:
+          val = 0.5;
+      }
+      mask[r][c] = val;
+    }
+  }
+  return mask;
+}
+
 // 预设数字标准像素点阵（28x28）
 export const DIGIT_PRESETS: { [digit: number]: number[][] } = {};
 
@@ -131,7 +205,7 @@ initPresets();
 
 // 归一化并居中用户绘制的 Canvas 图像到 28x28 网格
 export function preprocessCanvas(canvas: HTMLCanvasElement): number[][] {
-  const ctx = canvas.getContext('2d');
+  const ctx = canvas.getContext('2d', { willReadFrequently: true });
   if (!ctx) return Array.from({ length: 28 }, () => Array(28).fill(0));
 
   const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
@@ -180,7 +254,7 @@ export function preprocessCanvas(canvas: HTMLCanvasElement): number[][] {
   const tempCanvas = document.createElement('canvas');
   tempCanvas.width = 28;
   tempCanvas.height = 28;
-  const tempCtx = tempCanvas.getContext('2d');
+  const tempCtx = tempCanvas.getContext('2d', { willReadFrequently: true });
   if (!tempCtx) return result;
 
   tempCtx.fillStyle = '#000000';

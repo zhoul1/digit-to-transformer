@@ -12,8 +12,9 @@ import {
   Terminal,
   Trophy,
 } from 'lucide-react';
-import { ActiveTab, ChapterId } from './types';
+import { ActiveTab, ChapterId, Achievement } from './types';
 import { CHAPTERS } from './data/chaptersData';
+import { INITIAL_ACHIEVEMENTS } from './data/achievementsData';
 import { Navbar } from './components/Navbar';
 import { Sidebar } from './components/Sidebar';
 import { Chapter1Digits } from './components/chapters/Chapter1Digits';
@@ -26,6 +27,8 @@ import { AttentionPlayground } from './components/playgrounds/AttentionPlaygroun
 import { LLMGenerationPlayground } from './components/playgrounds/LLMGenerationPlayground';
 import { CodeSandboxPlayground } from './components/playgrounds/CodeSandboxPlayground';
 import { PyTorchHubPlayground } from './components/playgrounds/PyTorchHubPlayground';
+import { GlossaryModal } from './components/common/GlossaryModal';
+import { AchievementModal } from './components/common/AchievementModal';
 
 export function App() {
   const [activeTab, setActiveTab] = useState<ActiveTab>('chapters');
@@ -39,6 +42,80 @@ export function App() {
     }
   });
 
+  const [achievements, setAchievements] = useState<Achievement[]>(() => {
+    try {
+      const saved = localStorage.getItem('d2t_achievements');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        return INITIAL_ACHIEVEMENTS.map((a) => {
+          const found = parsed.find((p: any) => p.id === a.id);
+          return found ? { ...a, unlocked: found.unlocked, progress: found.progress || a.progress } : a;
+        });
+      }
+    } catch {}
+    return INITIAL_ACHIEVEMENTS;
+  });
+
+  const [passedChallenges, setPassedChallenges] = useState<string[]>(() => {
+    try {
+      const saved = localStorage.getItem('d2t_passed_challenges');
+      return saved ? JSON.parse(saved) : [];
+    } catch {
+      return [];
+    }
+  });
+
+  const [isGlossaryOpen, setIsGlossaryOpen] = useState(false);
+  const [isAchievementsOpen, setIsAchievementsOpen] = useState(false);
+
+  const unlockBadge = (badgeId: string) => {
+    setAchievements((prev) => {
+      const updated = prev.map((item) => {
+        if (item.id === badgeId && !item.unlocked) {
+          return { ...item, unlocked: true };
+        }
+        return item;
+      });
+      try {
+        localStorage.setItem('d2t_achievements', JSON.stringify(updated));
+      } catch (e) {
+        console.error(e);
+      }
+      return updated;
+    });
+  };
+
+  const handleChallengePassed = (chId: string) => {
+    if (!passedChallenges.includes(chId)) {
+      const updated = [...passedChallenges, chId];
+      setPassedChallenges(updated);
+      try {
+        localStorage.setItem('d2t_passed_challenges', JSON.stringify(updated));
+      } catch (e) {
+        console.error(e);
+      }
+
+      setAchievements((prev) => {
+        const next = prev.map((a) => {
+          if (a.id === 'badge-code') {
+            const cur = updated.length;
+            const isUnlocked = cur >= 4;
+            return {
+              ...a,
+              unlocked: isUnlocked,
+              progress: { current: cur, total: 4 },
+            };
+          }
+          return a;
+        });
+        try {
+          localStorage.setItem('d2t_achievements', JSON.stringify(next));
+        } catch (e) {}
+        return next;
+      });
+    }
+  };
+
   const markChapterComplete = (id: string) => {
     if (!completedChapters.includes(id)) {
       const updated = [...completedChapters, id];
@@ -49,11 +126,19 @@ export function App() {
         console.error(e);
       }
     }
+
+    if (id === 'chapter-1') unlockBadge('badge-digit');
+    if (id === 'chapter-2') unlockBadge('badge-embedding');
+    if (id === 'chapter-3') unlockBadge('badge-attention');
+    if (id === 'chapter-4') unlockBadge('badge-transformer');
+    if (id === 'chapter-5') unlockBadge('badge-llm');
   };
 
   const currentIdx = CHAPTERS.findIndex((c) => c.id === currentChapterId);
   const prevChapter = currentIdx > 0 ? CHAPTERS[currentIdx - 1] : null;
   const nextChapter = currentIdx < CHAPTERS.length - 1 ? CHAPTERS[currentIdx + 1] : null;
+
+  const unlockedBadgeCount = achievements.filter((a) => a.unlocked).length;
 
   return (
     <div className="min-h-screen bg-[#060911] text-slate-100 flex flex-col font-sans selection:bg-indigo-600 selection:text-white">
@@ -62,6 +147,10 @@ export function App() {
         activeTab={activeTab}
         setActiveTab={setActiveTab}
         completedChapters={completedChapters}
+        onOpenGlossary={() => setIsGlossaryOpen(true)}
+        onOpenAchievements={() => setIsAchievementsOpen(true)}
+        unlockedBadgeCount={unlockedBadgeCount}
+        totalBadgeCount={achievements.length}
       />
 
       {/* 主体区域 */}
@@ -186,7 +275,9 @@ export function App() {
         )}
 
         {/* 独立实战工坊 1：手写画板 */}
-        {activeTab === 'playground-digit' && <DigitCanvasPlayground />}
+        {activeTab === 'playground-digit' && (
+          <DigitCanvasPlayground onPredict={() => unlockBadge('badge-digit')} />
+        )}
 
         {/* 独立实战工坊 2：自注意力矩阵 */}
         {activeTab === 'playground-attention' && <AttentionPlayground />}
@@ -195,11 +286,26 @@ export function App() {
         {activeTab === 'playground-llm' && <LLMGenerationPlayground />}
 
         {/* 独立实战工坊 4：代码沙盒练习 */}
-        {activeTab === 'code-sandbox' && <CodeSandboxPlayground />}
+        {activeTab === 'code-sandbox' && (
+          <CodeSandboxPlayground onChallengePassed={handleChallengePassed} />
+        )}
 
         {/* 独立实战工坊 5：PyTorch 源码库 */}
         {activeTab === 'pytorch-hub' && <PyTorchHubPlayground />}
       </main>
+
+      {/* 术语概念速查手册弹窗 */}
+      <GlossaryModal
+        isOpen={isGlossaryOpen}
+        onClose={() => setIsGlossaryOpen(false)}
+      />
+
+      {/* 认知升级勋章陈列室弹窗 */}
+      <AchievementModal
+        isOpen={isAchievementsOpen}
+        onClose={() => setIsAchievementsOpen(false)}
+        achievements={achievements}
+      />
 
       {/* 页脚 */}
       <footer className="mt-16 border-t border-slate-900 bg-[#04060c] py-8 text-xs text-slate-400">

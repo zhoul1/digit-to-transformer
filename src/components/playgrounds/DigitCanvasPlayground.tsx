@@ -13,22 +13,30 @@ import {
   runMnistMLP,
   DIGIT_PRESETS,
   NEURON_FEATURE_NAMES,
+  getNeuronReceptiveMask,
   MnistInferenceResult,
 } from '../../utils/mnistModel';
 
-export const DigitCanvasPlayground: React.FC = () => {
+interface DigitCanvasPlaygroundProps {
+  onPredict?: (digit: number) => void;
+}
+
+export const DigitCanvasPlayground: React.FC<DigitCanvasPlaygroundProps> = ({ onPredict }) => {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const [isDrawing, setIsDrawing] = useState(false);
   const [inferenceResult, setInferenceResult] = useState<MnistInferenceResult | null>(null);
   const [selectedNeuronIdx, setSelectedNeuronIdx] = useState<number>(0);
   const [showHeatGrid, setShowHeatGrid] = useState(true);
+  const [showReceptiveOverlay, setShowReceptiveOverlay] = useState(true);
+  const [brushSize, setBrushSize] = useState<number>(18);
+  const [noiseLevel, setNoiseLevel] = useState<number>(0);
   const [activePreset, setActivePreset] = useState<number | null>(3);
 
   // 清空画板背景
   const clearCanvas = useCallback(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
-    const ctx = canvas.getContext('2d');
+    const ctx = canvas.getContext('2d', { willReadFrequently: true });
     if (!ctx) return;
 
     ctx.fillStyle = '#090d16';
@@ -57,19 +65,37 @@ export const DigitCanvasPlayground: React.FC = () => {
   }, []);
 
   // 执行推断
-  const triggerInference = useCallback((presetHint?: number | null) => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    const grid = preprocessCanvas(canvas);
-    const res = runMnistMLP(grid, presetHint !== undefined ? presetHint : activePreset);
-    setInferenceResult(res);
-  }, [activePreset]);
+  const triggerInference = useCallback(
+    (presetHint?: number | null, customNoise?: number) => {
+      const canvas = canvasRef.current;
+      if (!canvas) return;
+      let grid = preprocessCanvas(canvas);
+
+      // 噪点注入测试 (如果启用了噪点)
+      const curNoise = customNoise !== undefined ? customNoise : noiseLevel;
+      if (curNoise > 0) {
+        grid = grid.map((row) =>
+          row.map((val) => {
+            const noise = (Math.random() - 0.5) * (curNoise / 100);
+            return Math.min(1.0, Math.max(0, val + noise));
+          })
+        );
+      }
+
+      const res = runMnistMLP(grid, presetHint !== undefined ? presetHint : activePreset);
+      setInferenceResult(res);
+      if (onPredict && res.confidence > 0.3) {
+        onPredict(res.predictedDigit);
+      }
+    },
+    [activePreset, noiseLevel, onPredict]
+  );
 
   // 加载数字预设
   const loadPreset = (digit: number) => {
     const canvas = canvasRef.current;
     if (!canvas) return;
-    const ctx = canvas.getContext('2d');
+    const ctx = canvas.getContext('2d', { willReadFrequently: true });
     if (!ctx) return;
 
     clearCanvas();
@@ -117,14 +143,14 @@ export const DigitCanvasPlayground: React.FC = () => {
     const { x, y } = getCoordinates(e);
     const canvas = canvasRef.current;
     if (!canvas) return;
-    const ctx = canvas.getContext('2d');
+    const ctx = canvas.getContext('2d', { willReadFrequently: true });
     if (!ctx) return;
 
     ctx.beginPath();
     ctx.moveTo(x, y);
     ctx.lineCap = 'round';
     ctx.lineJoin = 'round';
-    ctx.lineWidth = 18;
+    ctx.lineWidth = brushSize;
     ctx.strokeStyle = '#ffffff';
     ctx.lineTo(x + 0.1, y + 0.1);
     ctx.stroke();
@@ -136,9 +162,10 @@ export const DigitCanvasPlayground: React.FC = () => {
     const { x, y } = getCoordinates(e);
     const canvas = canvasRef.current;
     if (!canvas) return;
-    const ctx = canvas.getContext('2d');
+    const ctx = canvas.getContext('2d', { willReadFrequently: true });
     if (!ctx) return;
 
+    ctx.lineWidth = brushSize;
     ctx.lineTo(x, y);
     ctx.stroke();
     triggerInference(null);
@@ -168,13 +195,25 @@ export const DigitCanvasPlayground: React.FC = () => {
             </p>
           </div>
 
-          <button
-            onClick={() => setShowHeatGrid(!showHeatGrid)}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-800 text-xs text-slate-300 hover:text-white border border-slate-700 transition-all cursor-pointer"
-          >
-            <Eye className="w-3.5 h-3.5 text-indigo-400" />
-            <span>{showHeatGrid ? '隐藏 28x28 网格' : '显示 28x28 网格'}</span>
-          </button>
+          <div className="flex flex-wrap items-center gap-2">
+            <button
+              onClick={() => setShowReceptiveOverlay(!showReceptiveOverlay)}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs border transition-all cursor-pointer ${
+                showReceptiveOverlay
+                  ? 'bg-amber-500/20 text-amber-300 border-amber-500/40'
+                  : 'bg-slate-800 text-slate-400 border-slate-700'
+              }`}
+            >
+              <span>神经元感受野透视: {showReceptiveOverlay ? '开启' : '关闭'}</span>
+            </button>
+            <button
+              onClick={() => setShowHeatGrid(!showHeatGrid)}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-800 text-xs text-slate-300 hover:text-white border border-slate-700 transition-all cursor-pointer"
+            >
+              <Eye className="w-3.5 h-3.5 text-indigo-400" />
+              <span>{showHeatGrid ? '隐藏 28x28 网格' : '显示 28x28 网格'}</span>
+            </button>
+          </div>
         </div>
       </div>
 
@@ -183,9 +222,49 @@ export const DigitCanvasPlayground: React.FC = () => {
         {/* 左侧：画板区 */}
         <div className="lg:col-span-5 space-y-4">
           <div className="p-5 rounded-2xl bg-slate-900/80 border border-slate-800/80 shadow-xl flex flex-col items-center">
-            <div className="w-full flex items-center justify-between mb-3 text-xs text-slate-400">
-              <span className="font-semibold text-slate-200">手绘输入画板 (280 × 280)</span>
-              <span>支持鼠标拖拽 / 手机触控</span>
+            {/* 笔刷与噪点调节控制条 */}
+            <div className="w-full flex flex-wrap items-center justify-between gap-2 mb-3 pb-3 border-b border-slate-800 text-xs">
+              {/* 笔刷粗细选择 */}
+              <div className="flex items-center gap-1">
+                <span className="text-slate-400 text-[11px]">笔刷:</span>
+                {[
+                  { label: '细', size: 12 },
+                  { label: '中', size: 18 },
+                  { label: '粗', size: 26 },
+                ].map((b) => (
+                  <button
+                    key={b.size}
+                    onClick={() => setBrushSize(b.size)}
+                    className={`px-2 py-0.5 rounded text-[11px] font-semibold border transition-all cursor-pointer ${
+                      brushSize === b.size
+                        ? 'bg-indigo-600 text-white border-indigo-400'
+                        : 'bg-slate-800 text-slate-400 border-slate-700 hover:text-white'
+                    }`}
+                  >
+                    {b.label}
+                  </button>
+                ))}
+              </div>
+
+              {/* 噪点鲁棒性测试 */}
+              <div className="flex items-center gap-2">
+                <span className="text-slate-400 text-[11px]">对抗噪点:</span>
+                <input
+                  type="range"
+                  min={0}
+                  max={40}
+                  value={noiseLevel}
+                  onChange={(e) => {
+                    const val = Number(e.target.value);
+                    setNoiseLevel(val);
+                    triggerInference(activePreset, val);
+                  }}
+                  className="w-16 accent-amber-500 cursor-pointer"
+                />
+                <span className="font-mono text-[10px] text-amber-400 w-6">
+                  {noiseLevel}%
+                </span>
+              </div>
             </div>
 
             {/* 真实 Canvas 画布 */}
@@ -254,7 +333,12 @@ export const DigitCanvasPlayground: React.FC = () => {
             <div className="p-4 rounded-2xl bg-slate-900/80 border border-slate-800 text-xs">
               <div className="flex items-center justify-between mb-2">
                 <span className="font-semibold text-slate-300">
-                  居中归一化后的 28×28 像素灰阶矩阵
+                  居中归一化 28×28 网格
+                  {showReceptiveOverlay && (
+                    <span className="text-amber-400 font-mono ml-1.5 text-[10px]">
+                      (叠加 N{selectedNeuronIdx} 感受野热区)
+                    </span>
+                  )}
                 </span>
                 <span className="text-[10px] text-slate-500 font-mono">
                   784 个一维输入数值
@@ -264,21 +348,35 @@ export const DigitCanvasPlayground: React.FC = () => {
                 className="grid gap-[1px] p-1.5 bg-slate-950 rounded-lg border border-slate-800 overflow-hidden max-w-[280px] mx-auto shadow-inner"
                 style={{ gridTemplateColumns: 'repeat(28, minmax(0, 1fr))' }}
               >
-                {inferenceResult.inputGrid28x28.flatMap((row, rIdx) =>
-                  row.map((val, cIdx) => (
-                    <div
-                      key={`${rIdx}-${cIdx}`}
-                      title={`(${rIdx}, ${cIdx}): ${val.toFixed(2)}`}
-                      className="aspect-square rounded-[0.5px] transition-colors"
-                      style={{
-                        backgroundColor:
-                          val > 0.05
-                            ? `rgba(99, 102, 241, ${Math.min(1, val * 1.3 + 0.2)})`
-                            : '#060911',
-                      }}
-                    />
-                  ))
-                )}
+                {(() => {
+                  const receptiveMask = getNeuronReceptiveMask(selectedNeuronIdx);
+                  return inferenceResult.inputGrid28x28.flatMap((row, rIdx) =>
+                    row.map((val, cIdx) => {
+                      const inReceptive = showReceptiveOverlay && receptiveMask[rIdx][cIdx] > 0.5;
+                      let bg = '#060911';
+                      if (val > 0.05) {
+                        bg = inReceptive
+                          ? `rgba(251, 191, 36, ${Math.min(1, val * 1.2 + 0.3)})`
+                          : `rgba(99, 102, 241, ${Math.min(1, val * 1.3 + 0.2)})`;
+                      } else if (inReceptive) {
+                        bg = 'rgba(245, 158, 11, 0.15)';
+                      }
+
+                      return (
+                        <div
+                          key={`${rIdx}-${cIdx}`}
+                          title={`(${rIdx}, ${cIdx}): 亮度 ${val.toFixed(2)}${
+                            inReceptive ? ' [N' + selectedNeuronIdx + ' 重点检测区]' : ''
+                          }`}
+                          className={`aspect-square rounded-[0.5px] transition-colors ${
+                            inReceptive && val <= 0.05 ? 'outline-1 outline-amber-500/30' : ''
+                          }`}
+                          style={{ backgroundColor: bg }}
+                        />
+                      );
+                    })
+                  );
+                })()}
               </div>
             </div>
           )}

@@ -11,6 +11,7 @@ import {
 import { MathCard } from '../common/MathCard';
 import { CodeBlock } from '../common/CodeBlock';
 import { QuizModal } from '../common/QuizModal';
+import { WordVectorSpaceVisualizer } from '../common/WordVectorSpaceVisualizer';
 import { QUIZZES } from '../../data/quizzesData';
 import { ActiveTab } from '../../types';
 
@@ -160,6 +161,9 @@ export const Chapter2Sequence: React.FC<Chapter2Props> = ({
           intuition="在语义空间中，意思相近的词距离极近；而且向量之间可以像加减乘除一样运算：‘国王 - 男人 + 女人 ≈ 女王’！"
           tags={['稠密向量', '语义空间', '余弦相似度']}
         />
+
+        {/* 2D 词嵌入几何空间交互投影器 */}
+        <WordVectorSpaceVisualizer />
 
         {/* 交互实验：词向量相似度测量 */}
         <div className="p-5 rounded-2xl bg-slate-900/80 border border-slate-800 space-y-4">

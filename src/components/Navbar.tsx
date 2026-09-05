@@ -10,18 +10,28 @@ import {
   BookOpen,
   Award,
   PenTool,
+  Trophy,
+  HelpCircle,
 } from 'lucide-react';
 
 interface NavbarProps {
   activeTab: ActiveTab;
   setActiveTab: (tab: ActiveTab) => void;
   completedChapters: string[];
+  onOpenGlossary: () => void;
+  onOpenAchievements: () => void;
+  unlockedBadgeCount: number;
+  totalBadgeCount: number;
 }
 
 export const Navbar: React.FC<NavbarProps> = ({
   activeTab,
   setActiveTab,
   completedChapters,
+  onOpenGlossary,
+  onOpenAchievements,
+  unlockedBadgeCount,
+  totalBadgeCount,
 }) => {
   const navItems: { id: ActiveTab; label: string; icon: React.ReactNode; badge?: string }[] = [
     { id: 'chapters', label: '沉浸教程', icon: <BookOpen className="w-4 h-4" /> },
@@ -93,13 +103,37 @@ export const Navbar: React.FC<NavbarProps> = ({
             })}
           </nav>
 
-          {/* Right Progress Tracker */}
-          <div className="flex items-center gap-3">
-            <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-900 border border-slate-800 text-xs text-slate-300">
-              <Award className="w-4 h-4 text-amber-400" />
-              <span>通读:</span>
+          {/* Right Progress & Quick Tool Modals */}
+          <div className="flex items-center gap-2">
+            {/* 概念词典速查按钮 */}
+            <button
+              onClick={onOpenGlossary}
+              title="查看深度学习核心术语速查手册"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-900/80 hover:bg-slate-800 border border-slate-800 text-xs text-slate-300 hover:text-white transition-all cursor-pointer"
+            >
+              <HelpCircle className="w-3.5 h-3.5 text-indigo-400" />
+              <span className="hidden lg:inline">概念词典</span>
+            </button>
+
+            {/* 成就勋章陈列室按钮 */}
+            <button
+              onClick={onOpenAchievements}
+              title="打开认知升级勋章陈列室"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-gradient-to-r from-amber-500/15 to-indigo-500/15 hover:from-amber-500/25 hover:to-indigo-500/25 border border-amber-500/30 text-xs text-amber-200 transition-all cursor-pointer"
+            >
+              <Trophy className="w-3.5 h-3.5 text-amber-400" />
+              <span>勋章:</span>
               <span className="font-mono font-bold text-amber-300">
-                {completedChapters.length} / 5
+                {unlockedBadgeCount}/{totalBadgeCount}
+              </span>
+            </button>
+
+            {/* 章节通读徽章 */}
+            <div className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-900 border border-slate-800 text-xs text-slate-300">
+              <Award className="w-3.5 h-3.5 text-indigo-400" />
+              <span>通读:</span>
+              <span className="font-mono font-bold text-indigo-300">
+                {completedChapters.length}/5
               </span>
             </div>
 

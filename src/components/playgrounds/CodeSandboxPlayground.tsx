@@ -13,7 +13,11 @@ import confetti from 'canvas-confetti';
 import { CODE_CHALLENGES } from '../../data/codeChallengesData';
 import { CodeChallenge } from '../../types';
 
-export const CodeSandboxPlayground: React.FC = () => {
+interface CodeSandboxProps {
+  onChallengePassed?: (challengeId: string) => void;
+}
+
+export const CodeSandboxPlayground: React.FC<CodeSandboxProps> = ({ onChallengePassed }) => {
   const [selectedChallenge, setSelectedChallenge] = useState<CodeChallenge>(
     CODE_CHALLENGES[0]
   );
@@ -72,6 +76,9 @@ export const CodeSandboxPlayground: React.FC = () => {
       setAllPassed(isSuccess);
 
       if (isSuccess) {
+        if (onChallengePassed) {
+          onChallengePassed(selectedChallenge.id);
+        }
         confetti({
           particleCount: 100,
           spread: 80,
