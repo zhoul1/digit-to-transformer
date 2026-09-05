@@ -27,6 +27,9 @@ import { AttentionPlayground } from './components/playgrounds/AttentionPlaygroun
 import { LLMGenerationPlayground } from './components/playgrounds/LLMGenerationPlayground';
 import { CodeSandboxPlayground } from './components/playgrounds/CodeSandboxPlayground';
 import { PyTorchHubPlayground } from './components/playgrounds/PyTorchHubPlayground';
+import { CalculusCourse } from './components/math/CalculusCourse';
+import { ProbabilityCourse } from './components/math/ProbabilityCourse';
+import { StatisticsCourse } from './components/math/StatisticsCourse';
 import { GlossaryModal } from './components/common/GlossaryModal';
 import { AchievementModal } from './components/common/AchievementModal';
 
@@ -161,7 +164,7 @@ export function App() {
             {/* 顶部认知大地图 Banner */}
             <div className="p-6 sm:p-8 rounded-3xl bg-gradient-to-r from-indigo-950/70 via-slate-900 to-purple-950/50 border border-indigo-500/30 shadow-2xl relative overflow-hidden">
               <div className="absolute top-0 right-0 w-96 h-96 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none" />
-              
+
               <div className="relative z-10 max-w-3xl space-y-3">
                 <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-500/20 text-indigo-300 text-xs font-semibold border border-indigo-500/30">
                   <Sparkles className="w-3.5 h-3.5" />
@@ -272,6 +275,30 @@ export function App() {
               </div>
             </div>
           </div>
+        )}
+
+        {/* AI 数学基石课程 1：微积分 */}
+        {activeTab === 'math-calculus' && (
+          <CalculusCourse
+            setActiveTab={setActiveTab}
+            onCompleteQuiz={() => unlockBadge('badge-math-calculus')}
+          />
+        )}
+
+        {/* AI 数学基石课程 2：概率论 */}
+        {activeTab === 'math-probability' && (
+          <ProbabilityCourse
+            setActiveTab={setActiveTab}
+            onCompleteQuiz={() => unlockBadge('badge-math-probability')}
+          />
+        )}
+
+        {/* AI 数学基石课程 3：统计学 */}
+        {activeTab === 'math-statistics' && (
+          <StatisticsCourse
+            setActiveTab={setActiveTab}
+            onCompleteQuiz={() => unlockBadge('badge-math-statistics')}
+          />
         )}
 
         {/* 独立实战工坊 1：手写画板 */}

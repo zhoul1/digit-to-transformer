@@ -10,6 +10,7 @@ import {
   Network,
   Cpu,
   Code2,
+  Calculator,
 } from 'lucide-react';
 import { CHAPTERS } from '../data/chaptersData';
 import { ChapterId, ActiveTab } from '../types';
@@ -98,6 +99,73 @@ export const Sidebar: React.FC<SidebarProps> = ({
             );
           })}
         </div>
+      </div>
+
+      {/* AI 数学基石 3 门核心课程快速入口 */}
+      <div className="p-5 rounded-2xl bg-gradient-to-br from-indigo-950/30 via-slate-900 to-purple-950/20 border border-indigo-500/30 shadow-xl space-y-2 text-xs">
+        <div className="flex items-center justify-between mb-2">
+          <div className="flex items-center gap-1.5 font-bold text-slate-100">
+            <Calculator className="w-3.5 h-3.5 text-purple-400" />
+            <span>AI 数学基石互动课</span>
+          </div>
+          <span className="text-[9px] font-mono font-bold px-1.5 py-0.5 rounded bg-purple-500/20 text-purple-300 border border-purple-500/30">
+            核心底座
+          </span>
+        </div>
+
+        <button
+          onClick={() => setActiveTab('math-calculus')}
+          className={`w-full flex items-center justify-between p-2 rounded-xl border transition-all cursor-pointer ${
+            activeTab === 'math-calculus'
+              ? 'bg-indigo-600/25 border-indigo-500 text-indigo-200 shadow-md'
+              : 'border-slate-800/80 hover:bg-slate-800/60 text-slate-300'
+          }`}
+        >
+          <div className="flex items-center gap-2">
+            <span>📐</span>
+            <div className="text-left">
+              <div className="font-semibold text-xs text-slate-200">微积分：梯度与链式法则</div>
+              <div className="text-[10px] text-slate-500">导数 · 损失曲面 · 反向传播</div>
+            </div>
+          </div>
+          <ChevronRight className="w-3.5 h-3.5 text-slate-500" />
+        </button>
+
+        <button
+          onClick={() => setActiveTab('math-probability')}
+          className={`w-full flex items-center justify-between p-2 rounded-xl border transition-all cursor-pointer ${
+            activeTab === 'math-probability'
+              ? 'bg-purple-600/25 border-purple-500 text-purple-200 shadow-md'
+              : 'border-slate-800/80 hover:bg-slate-800/60 text-slate-300'
+          }`}
+        >
+          <div className="flex items-center gap-2">
+            <span>🎲</span>
+            <div className="text-left">
+              <div className="font-semibold text-xs text-slate-200">概率论：贝叶斯与交叉熵</div>
+              <div className="text-[10px] text-slate-500">条件概率 · 信息熵 · 高斯分布</div>
+            </div>
+          </div>
+          <ChevronRight className="w-3.5 h-3.5 text-slate-500" />
+        </button>
+
+        <button
+          onClick={() => setActiveTab('math-statistics')}
+          className={`w-full flex items-center justify-between p-2 rounded-xl border transition-all cursor-pointer ${
+            activeTab === 'math-statistics'
+              ? 'bg-cyan-600/25 border-cyan-500 text-cyan-200 shadow-md'
+              : 'border-slate-800/80 hover:bg-slate-800/60 text-slate-300'
+          }`}
+        >
+          <div className="flex items-center gap-2">
+            <span>📊</span>
+            <div className="text-left">
+              <div className="font-semibold text-xs text-slate-200">统计学：中心极限与分布</div>
+              <div className="text-[10px] text-slate-500">中心极限 · LayerNorm · 向量相关</div>
+            </div>
+          </div>
+          <ChevronRight className="w-3.5 h-3.5 text-slate-500" />
+        </button>
       </div>
 
       {/* 四大实战实验室快捷入口 */}

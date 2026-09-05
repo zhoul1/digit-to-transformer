@@ -50,4 +50,28 @@ export const INITIAL_ACHIEVEMENTS: Achievement[] = [
     unlocked: false,
     progress: { current: 0, total: 4 },
   },
+  {
+    id: 'badge-math-calculus',
+    title: '微积分导数开悟者',
+    description: '在微积分课程中体验切线求导极限、小球梯度下降滚山坡与反向传播链式法则。',
+    icon: 'Activity',
+    badgeColor: 'from-cyan-500 to-blue-600',
+    unlocked: false,
+  },
+  {
+    id: 'badge-math-probability',
+    title: '概率推理算无遗策',
+    description: '在概率论课程中体验贝叶斯证据天平与大模型交叉熵惩罚曲线。',
+    icon: 'Compass',
+    badgeColor: 'from-violet-500 to-purple-600',
+    unlocked: false,
+  },
+  {
+    id: 'badge-math-statistics',
+    title: '统计科学度量宗师',
+    description: '在统计学课程中体验中心极限定理沙盒抽样收敛，掌握 LayerNorm 均值方差物理本质。',
+    icon: 'BarChart3',
+    badgeColor: 'from-emerald-500 to-green-600',
+    unlocked: false,
+  },
 ];

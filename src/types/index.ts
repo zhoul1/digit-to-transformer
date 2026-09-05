@@ -1,4 +1,13 @@
-export type ActiveTab = 'chapters' | 'playground-digit' | 'playground-attention' | 'playground-llm' | 'code-sandbox' | 'pytorch-hub';
+export type ActiveTab =
+  | 'chapters'
+  | 'playground-digit'
+  | 'playground-attention'
+  | 'playground-llm'
+  | 'code-sandbox'
+  | 'pytorch-hub'
+  | 'math-calculus'
+  | 'math-probability'
+  | 'math-statistics';
 
 export type ChapterId = 'chapter-1' | 'chapter-2' | 'chapter-3' | 'chapter-4' | 'chapter-5';
 
@@ -15,7 +24,7 @@ export interface ChapterMeta {
 
 export interface QuizQuestion {
   id: string;
-  chapterId: ChapterId;
+  chapterId: ChapterId | 'math-calculus' | 'math-probability' | 'math-statistics';
   question: string;
   options: string[];
   correctIndex: number;

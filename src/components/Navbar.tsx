@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { ActiveTab } from '../types';
 import {
   Brain,
@@ -12,6 +12,8 @@ import {
   PenTool,
   Trophy,
   HelpCircle,
+  Calculator,
+  ChevronDown,
 } from 'lucide-react';
 
 interface NavbarProps {
@@ -33,6 +35,25 @@ export const Navbar: React.FC<NavbarProps> = ({
   unlockedBadgeCount,
   totalBadgeCount,
 }) => {
+  const [isMathDropdownOpen, setIsMathDropdownOpen] = useState(false);
+  const mathDropdownRef = useRef<HTMLDivElement>(null);
+
+  const isMathActive =
+    activeTab === 'math-calculus' ||
+    activeTab === 'math-probability' ||
+    activeTab === 'math-statistics';
+
+  // 点击外部关闭下拉菜单
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (mathDropdownRef.current && !mathDropdownRef.current.contains(e.target as Node)) {
+        setIsMathDropdownOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
   const navItems: { id: ActiveTab; label: string; icon: React.ReactNode; badge?: string }[] = [
     { id: 'chapters', label: '沉浸教程', icon: <BookOpen className="w-4 h-4" /> },
     { id: 'playground-digit', label: '手写画板', icon: <PenTool className="w-4 h-4" />, badge: '实战' },
@@ -64,7 +85,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                 </span>
               </div>
               <p className="text-[11px] text-slate-400 hidden sm:block">
-                MNIST → Softmax → QKV Attention → GPT
+                MNIST → 微积分 · 概率 · 统计 → QKV Attention → GPT
               </p>
             </div>
           </div>
@@ -101,6 +122,86 @@ export const Navbar: React.FC<NavbarProps> = ({
                 </button>
               );
             })}
+
+            {/* AI 数学基石下拉菜单 */}
+            <div className="relative" ref={mathDropdownRef}>
+              <button
+                onClick={() => setIsMathDropdownOpen(!isMathDropdownOpen)}
+                className={`px-3 py-2 rounded-xl text-xs font-semibold transition-all flex items-center gap-1.5 cursor-pointer ${
+                  isMathActive
+                    ? 'bg-gradient-to-r from-purple-600/30 to-cyan-600/30 text-white border border-purple-500/50 shadow-inner'
+                    : 'text-slate-300 hover:text-white hover:bg-slate-900/80 border border-transparent'
+                }`}
+              >
+                <Calculator className={`w-4 h-4 ${isMathActive ? 'text-cyan-400' : 'text-purple-400'}`} />
+                <span>AI 数学基石</span>
+                <span className="text-[9px] px-1.5 py-0.2 rounded-full font-bold bg-purple-500/30 text-purple-200 border border-purple-500/40">
+                  3课
+                </span>
+                <ChevronDown className={`w-3 h-3 text-slate-400 transition-transform ${isMathDropdownOpen ? 'rotate-180' : ''}`} />
+              </button>
+
+              {isMathDropdownOpen && (
+                <div className="absolute top-full mt-2 left-0 w-64 bg-slate-900/95 backdrop-blur-xl border border-slate-700/80 rounded-2xl shadow-2xl p-2 z-50 space-y-1">
+                  <div className="px-3 py-1.5 text-[10px] font-mono text-slate-400 uppercase tracking-wider font-semibold border-b border-slate-800">
+                    深度学习底层三大数理底座
+                  </div>
+                  <button
+                    onClick={() => {
+                      setActiveTab('math-calculus');
+                      setIsMathDropdownOpen(false);
+                    }}
+                    className={`w-full text-left p-2.5 rounded-xl transition-all flex items-start gap-2.5 ${
+                      activeTab === 'math-calculus'
+                        ? 'bg-indigo-600/25 text-white border border-indigo-500/40'
+                        : 'text-slate-300 hover:bg-slate-800/80 hover:text-white'
+                    }`}
+                  >
+                    <span className="text-base">📐</span>
+                    <div>
+                      <div className="font-bold text-xs text-white">微积分 (Calculus)</div>
+                      <div className="text-[11px] text-slate-400">导数 · 梯度下降 · 链式法则</div>
+                    </div>
+                  </button>
+
+                  <button
+                    onClick={() => {
+                      setActiveTab('math-probability');
+                      setIsMathDropdownOpen(false);
+                    }}
+                    className={`w-full text-left p-2.5 rounded-xl transition-all flex items-start gap-2.5 ${
+                      activeTab === 'math-probability'
+                        ? 'bg-purple-600/25 text-white border border-purple-500/40'
+                        : 'text-slate-300 hover:bg-slate-800/80 hover:text-white'
+                    }`}
+                  >
+                    <span className="text-base">🎲</span>
+                    <div>
+                      <div className="font-bold text-xs text-white">概率与信息论 (Probability)</div>
+                      <div className="text-[11px] text-slate-400">贝叶斯天平 · 交叉熵 · 高斯分布</div>
+                    </div>
+                  </button>
+
+                  <button
+                    onClick={() => {
+                      setActiveTab('math-statistics');
+                      setIsMathDropdownOpen(false);
+                    }}
+                    className={`w-full text-left p-2.5 rounded-xl transition-all flex items-start gap-2.5 ${
+                      activeTab === 'math-statistics'
+                        ? 'bg-cyan-600/25 text-white border border-cyan-500/40'
+                        : 'text-slate-300 hover:bg-slate-800/80 hover:text-white'
+                    }`}
+                  >
+                    <span className="text-base">📊</span>
+                    <div>
+                      <div className="font-bold text-xs text-white">统计学 (Statistics)</div>
+                      <div className="text-[11px] text-slate-400">中心极限 · LayerNorm · 向量相关</div>
+                    </div>
+                  </button>
+                </div>
+              )}
+            </div>
           </nav>
 
           {/* Right Progress & Quick Tool Modals */}
@@ -149,6 +250,9 @@ export const Navbar: React.FC<NavbarProps> = ({
                     {item.label}
                   </option>
                 ))}
+                <option value="math-calculus">📐 数学：微积分</option>
+                <option value="math-probability">🎲 数学：概率论</option>
+                <option value="math-statistics">📊 数学：统计学</option>
               </select>
             </div>
           </div>
