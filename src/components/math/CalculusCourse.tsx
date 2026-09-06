@@ -1,10 +1,11 @@
-import React from 'react';
-import { Brain, Sparkles, ArrowRight, Zap, Layers, Compass, Lightbulb } from 'lucide-react';
+import React, { useState } from 'react';
+import { Brain, Sparkles, ArrowRight, Zap, Layers, Compass, Lightbulb, Footprints, Gauge, Smile } from 'lucide-react';
 import { MathCard } from '../common/MathCard';
 import { CodeBlock } from '../common/CodeBlock';
 import { QuizModal } from '../common/QuizModal';
 import { DerivativeExplorer } from './calculus/DerivativeExplorer';
 import { GradientDescentLab } from './calculus/GradientDescentLab';
+import { BlindHiker3DLab } from './calculus/BlindHiker3DLab';
 import { ChainRuleVisualizer } from './calculus/ChainRuleVisualizer';
 import { MATH_QUIZZES } from '../../data/mathQuizzesData';
 import { ActiveTab } from '../../types';
@@ -18,25 +19,72 @@ export const CalculusCourse: React.FC<CalculusCourseProps> = ({
   setActiveTab,
   onCompleteQuiz,
 }) => {
+  const [isEli5Mode, setIsEli5Mode] = useState<boolean>(true);
   const calculusQuizzes = MATH_QUIZZES.filter((q) => q.chapterId === 'math-calculus');
 
   return (
     <div className="space-y-10 max-w-4xl mx-auto pb-12">
       {/* 课程大头部 */}
       <div className="p-8 rounded-3xl bg-gradient-to-br from-indigo-950/70 via-slate-900 to-blue-950/50 border border-indigo-500/30 shadow-2xl relative overflow-hidden">
-        <div className="flex items-center gap-3 mb-3">
-          <span className="px-3 py-1 rounded-full bg-indigo-500/20 text-indigo-300 font-mono text-xs font-bold border border-indigo-500/30">
-            MATH FOUNDATION 01
-          </span>
-          <span className="text-xs text-slate-400">⚡ 沉浸式数学直觉 · 动态可视化实操</span>
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-3">
+          <div className="flex items-center gap-2">
+            <span className="px-3 py-1 rounded-full bg-indigo-500/20 text-indigo-300 font-mono text-xs font-bold border border-indigo-500/30">
+              MATH FOUNDATION 01
+            </span>
+            <span className="text-xs text-slate-400">⚡ 沉浸式数学直觉 · 动态可视化实操</span>
+          </div>
+
+          {/* ELI5 人话模式切换大开关 */}
+          <button
+            onClick={() => setIsEli5Mode(!isEli5Mode)}
+            className={`flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-bold transition-all border cursor-pointer ${
+              isEli5Mode
+                ? 'bg-amber-500/20 border-amber-500/50 text-amber-300 shadow-lg shadow-amber-500/20'
+                : 'bg-slate-800/80 border-slate-700 text-slate-400 hover:text-slate-200'
+            }`}
+          >
+            <Smile className="w-3.5 h-3.5" />
+            <span>{isEli5Mode ? '人话极简直觉模式 (ELI5 开启中)' : '切换至人话直觉模式'}</span>
+          </button>
         </div>
-        <h1 className="text-2xl sm:text-4xl font-extrabold text-white tracking-tight leading-tight">
+
+        <h1 className="text-2xl sm:text-4xl font-black text-white tracking-tight leading-tight">
           微积分：神经网络如何学会“自我修正”？
         </h1>
         <p className="mt-3 text-sm sm:text-base text-slate-300 leading-relaxed">
           人工智能没有神秘的魔法。一个拥有上千亿参数的大语言模型，之所以能从胡言乱语学会作诗、写代码，底层完全是由
           <strong>微积分的导数、梯度下降与链式法则</strong> 驱动参数一步步向零误差收敛。
         </p>
+
+        {/* 人话故事卡片 (ELI5 模式特供) */}
+        {isEli5Mode && (
+          <div className="mt-6 p-4 rounded-2xl bg-amber-500/10 border border-amber-500/30 text-xs text-amber-200 space-y-3">
+            <div className="font-bold flex items-center gap-1.5 text-sm text-amber-300">
+              <Lightbulb className="w-4 h-4 text-amber-400" />
+              <span>像给 5 岁小孩讲故事：微积分三大灵魂隐喻</span>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-slate-300">
+              <div className="p-3 bg-slate-950/60 rounded-xl border border-slate-800 space-y-1">
+                <span className="font-bold text-cyan-300 block">🚗 1. 汽车速度表 (导数)</span>
+                <p className="text-[11px] text-slate-400 leading-relaxed">
+                  里程表告诉你跑了多远，而速度表指针告诉你<strong>这一毫秒冲得有多猛</strong>！导数就是速度表，随时告诉你下一秒函数是往上窜还是往下跌。
+                </p>
+              </div>
+              <div className="p-3 bg-slate-950/60 rounded-xl border border-slate-800 space-y-1">
+                <span className="font-bold text-indigo-300 block">👣 2. 盲人夜间下山 (梯度下降)</span>
+                <p className="text-[11px] text-slate-400 leading-relaxed">
+                  伸手不见五指，大模型不知道全天下山的路。但只要用脚底感觉<strong>哪个方向最陡往下倾斜</strong>，迈出一步，反复上万次就能到达谷底营地！
+                </p>
+              </div>
+              <div className="p-3 bg-slate-950/60 rounded-xl border border-slate-800 space-y-1">
+                <span className="font-bold text-purple-300 block">⛓️ 3. 传力机械齿轮 (链式法则)</span>
+                <p className="text-[11px] text-slate-400 leading-relaxed">
+                  100 个串联的齿轮，摇动最末端的一个齿轮，力道会<strong>一环乘一环反向传回第一个齿轮</strong>！反向传播就是利用这根链条修正千亿参数。
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* 模块一：导数与瞬时变化率 */}
@@ -52,8 +100,8 @@ export const CalculusCourse: React.FC<CalculusCourseProps> = ({
         </div>
 
         <p className="text-sm text-slate-300 leading-relaxed">
-          在初等代数中，斜率是直线倾斜程度的度量：Δy / Δx。但在复杂的曲线上，每个点的倾斜度时刻在变。
-          微积分创始人牛顿与莱布尼茨给出的天才洞见是：<strong>让割线的两点无限逼近（Δx → 0），割线的极限就是该点的切线斜率，这就是导数！</strong>
+          在初等代数中，斜率是直线倾斜程度的度量：$\Delta y / \Delta x$。但在复杂的曲线上，每个点的倾斜度时刻在变。
+          微积分创始人牛顿与莱布尼茨给出的天才洞见是：<strong>让割线的两点无限逼近（$\Delta x \to 0$），割线的极限就是该点的切线斜率，这就是导数！</strong>
         </p>
 
         <MathCard
@@ -68,15 +116,15 @@ export const CalculusCourse: React.FC<CalculusCourseProps> = ({
         <DerivativeExplorer />
       </section>
 
-      {/* 模块二：梯度下降与参数优化 */}
+      {/* 模块二：梯度下降与 3D 盲人探路者 */}
       <section className="space-y-4 pt-4">
         <div className="flex items-center gap-2">
           <span className="w-8 h-8 rounded-lg bg-indigo-500/20 text-indigo-400 font-mono text-sm flex items-center justify-center font-bold">
             02
           </span>
           <div>
-            <h2 className="text-xl font-bold text-slate-100">梯度下降：迷雾大山中的盲人下山法则</h2>
-            <p className="text-xs text-slate-400">将导数推广到多维向量空间，AI 模型参数迭代的万物之源</p>
+            <h2 className="text-xl font-bold text-slate-100">梯度下降：多维山谷中的盲人探路法则</h2>
+            <p className="text-xs text-slate-400">将导数推广到多维向量空间，大模型参数迭代的万物之源</p>
           </div>
         </div>
 
@@ -94,7 +142,10 @@ export const CalculusCourse: React.FC<CalculusCourseProps> = ({
           tags={['梯度下降', '学习率', '优化器']}
         />
 
-        {/* 交互实验 2 */}
+        {/* 3D 盲人探路者全新极限直觉舱 */}
+        <BlindHiker3DLab />
+
+        {/* 交互实验 2：1D/2D 梯度下降地形实验 */}
         <GradientDescentLab />
       </section>
 
@@ -111,7 +162,7 @@ export const CalculusCourse: React.FC<CalculusCourseProps> = ({
         </div>
 
         <p className="text-sm text-slate-300 leading-relaxed">
-          现代神经网络往往由数十甚至上百层复合而成：L = Loss(f_k(... f_1(x)))。
+          现代神经网络往往由数十甚至上百层复合而成：$L = \text{'{Loss}'}(f_k(\dots f_1(x)))$。
           如果逐层展开硬求导，公式复杂度会发生组合爆炸。但微积分的<strong>链式法则（Chain Rule）</strong>指出：
           <strong>复合函数的总导数等于各局部导数的连乘！</strong>
           这使得计算机只需从末端的损失值开始，把相邻环节的局部导数像接力棒一样相乘倒传回去，便能以 $O(N)$ 的高效代价算出所有参数的梯度。这就是轰动 AI 界的<strong>反向传播算法（Backpropagation）</strong>！
@@ -173,7 +224,7 @@ print(f"更新后的新权重 w: {w.item():.4f}")`}
             <span className="text-xs font-mono text-purple-400 font-bold">NEXT FOUNDATION</span>
             <h3 className="text-lg font-bold text-white mt-1">进阶模块 02：概率论与信息熵</h3>
             <p className="text-xs text-slate-300 mt-1.5 leading-relaxed">
-              大模型输出的不是死板的答案，而是概率分布！探索贝叶斯定理、交叉熵损失与信息论直觉。
+              大模型输出的不是死板的答案，而是概率分布！探索贝叶斯定理、高尔顿物理钉板机与大转盘。
             </p>
           </div>
           <button
@@ -190,7 +241,7 @@ print(f"更新后的新权重 w: {w.item():.4f}")`}
             <span className="text-xs font-mono text-cyan-400 font-bold">NEXT FOUNDATION</span>
             <h3 className="text-lg font-bold text-white mt-1">进阶模块 03：统计学与数据分布</h3>
             <p className="text-xs text-slate-300 mt-1.5 leading-relaxed">
-              探索中心极限定理、LayerNorm 归一化统计量（均值与方差），以及高维嵌入向量的相关性。
+              探索中心极限定理、12 层网络数值爆炸灾难模拟器、语义向量罗盘。
             </p>
           </div>
           <button
